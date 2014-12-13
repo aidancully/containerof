@@ -1,0 +1,9 @@
+[package]
+
+name = "intrusive"
+version = "0.0.1"
+authors = ["Aidan Cully <github@aidan.users.panix.com>"]
+description = """
+Provides Rust implementations of the C-language offsetof() and containerof()
+macros. Ownership passes between field and containing structure.
+"""

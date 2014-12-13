@@ -9,7 +9,8 @@ pub macro_rules! field_offset(
         fieldptr.to_uint()
     })
 )
-// container_of()-like operation.
+// container_of()-like operation. The field should go out of scope as the
+// container enters scope.
 pub macro_rules! from_field(
     ($name:ident($container:ty . $field:ident : $fieldtype:ty)) =>
     (fn $name(arg: &$fieldtype) -> &$container {
@@ -22,12 +23,6 @@ pub macro_rules! from_field(
                 containeri as * const $container;
             &*containerp
         }
-    })
-)
-pub macro_rules! to_field(
-    ($name:ident($container:ty . $field:ident : $fieldtype:ty)) =>
-    (fn $name(arg: &$container) -> &$fieldtype {
-        &(*arg).$field
     })
 )
 
@@ -94,14 +89,5 @@ pub mod test {
             m1, MyStruct::from_field2(&m.field2) as * const MyStruct);
         assert_eq!(
             m1, MyStruct::from_field3(&m.field3) as * const MyStruct);
-    }
-
-    #[test]
-    fn test_to_field() {
-        let m = MyStruct { field1: 0, field2: 0, field3: 0 };
-        let mp: * const MyStruct = &m;
-        let field2p = MyStruct::to_field2(&m);
-        let m2p = MyStruct::from_field2(field2p) as * const MyStruct;
-        assert_eq!(mp, m2p);
     }
 }

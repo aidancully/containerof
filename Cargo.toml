@@ -1,6 +1,6 @@
 [package]
 
-name = "intrusive"
+name = "containerof"
 version = "0.0.1"
 authors = ["Aidan Cully <github@aidan.users.panix.com>"]
 license = "MIT"

@@ -1,4 +1,4 @@
-#![crate_name = "intrusive"]
+#![crate_name = "containerof"]
 
 // offsetof()-like operation. Will become obsolete when-and-if offsetof() is
 // implemented in the core language.
@@ -21,7 +21,7 @@ macro_rules! intrusive {
         // for drop to succeed, so drops should be prevented at
         // compiler-level), but Rust yet doesn't support linear types.
         struct $nt(usize);
-        impl ::intrusive::Intrusive for $nt {
+        impl ::containerof::Intrusive for $nt {
             type Container = $container;
             type Field = $fieldtype;
 

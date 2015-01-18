@@ -1,7 +1,7 @@
 #![cfg(test)]
 #[macro_use(field_offset, intrusive)]
-extern crate intrusive;
-use intrusive::*;
+extern crate containerof;
+use containerof::*;
 
 #[derive(Clone)]
 struct MyStruct {
@@ -23,7 +23,7 @@ impl MyStruct {
 }
 
 struct MyStructField2_Meth1(usize);
-impl ::intrusive::Intrusive for MyStructField2_Meth1 {
+impl ::containerof::Intrusive for MyStructField2_Meth1 {
     type Container = MyStruct;
     type Field = i32;
 
@@ -70,7 +70,7 @@ fn test_field_offset() {
 fn test_intrusive_meth1() {
     let mc1 = Box::new(MyStruct { field1: 1, field2: 2, field3: 3 });
     let mc1_addr: usize = unsafe { ::std::mem::transmute_copy(&mc1) };
-    let mcfield: MyStructField2_Meth1 = ::intrusive::Intrusive::move_from(mc1);
+    let mcfield: MyStructField2_Meth1 = ::containerof::Intrusive::move_from(mc1);
     let mc2 = mcfield.container_of();
     let mc2_addr: usize = unsafe { ::std::mem::transmute_copy(&mc2) };
     assert_eq!(mc1_addr, mc2_addr);
@@ -79,7 +79,7 @@ fn test_intrusive_meth1() {
 fn test_intrusive_meth2() {
     let mc1 = Box::new(MyStruct { field1: 1, field2: 2, field3: 3 });
     let mc1_addr: usize = unsafe { ::std::mem::transmute_copy(&mc1) };
-    let mut mcfield: MyStructField2_Meth2 = ::intrusive::Intrusive::move_from(mc1);
+    let mut mcfield: MyStructField2_Meth2 = ::containerof::Intrusive::move_from(mc1);
     *(mcfield.as_field_mut()) = 10;
     let mc2 = mcfield.container_of();
     let mc2_addr: usize = unsafe { ::std::mem::transmute_copy(&mc2) };

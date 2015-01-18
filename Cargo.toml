@@ -3,6 +3,8 @@
 name = "intrusive"
 version = "0.0.1"
 authors = ["Aidan Cully <github@aidan.users.panix.com>"]
+license = "MIT"
+repository = "https://github.com/aidancully/rs-intrusive"
 description = """
 Provides Rust implementations of the C-language offsetof() and containerof()
 macros.

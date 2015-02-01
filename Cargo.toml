@@ -1,10 +1,10 @@
 [package]
 
 name = "containerof"
-version = "0.0.3"
+version = "0.1.0"
 authors = ["Aidan Cully <github@aidan.users.panix.com>"]
 license = "MIT"
-repository = "https://github.com/aidancully/rs-intrusive"
+repository = "https://github.com/aidancully/containerof"
 description = """
 Provides Rust implementations of the C-language offsetof() and containerof()
 macros.

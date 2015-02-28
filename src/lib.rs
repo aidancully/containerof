@@ -25,8 +25,11 @@
 //! containerof_intrusive!(ContainerLink = Container:link::Link);
 //! ```
 
+#![feature(unsafe_destructor)]
 #[crate_id = "containerof"]
-#[crate_type = "lib"]
+use std::ops;
+use std::mem;
+use std::marker;
 
 /// Implement C-like `offsetof` macro in Rust. Will become obsolete
 /// when-and-if offsetof() is implemented in the core language.
@@ -34,9 +37,7 @@
 #[unstable = "Will go away if-and-when Rust implements this function directly."]
 macro_rules! containerof_field_offset {
     ($container:ty : $field:ident) => (unsafe {
-        let nullptr = 0 as * const $container;
-        let fieldptr: * const _ = &((*nullptr).$field);
-        fieldptr as usize
+        &(*(0usize as *const $container)).$field as *const _ as usize
     })
 }
 
@@ -51,20 +52,35 @@ macro_rules! containerof_intrusive {
         // for drop to succeed, so drops should be prevented at
         // compiler-level), but Rust doesn't yet support linear types.
         struct $nt(usize);
-        impl ::containerof::Intrusive for $nt {
+        impl $crate::Intrusive for $nt {
             type Container = $container;
             type Field = $fieldtype;
 
             #[inline]
-            unsafe fn from_container(c: Box<$container>) -> Self {
-                let cp: *const $container = ::std::mem::transmute(c);
-                $nt(::std::mem::transmute(&((*cp).$field)))
+            fn from_container(c: $crate::OwnBox<$container>) -> Self {
+                unsafe {
+                    let c = c.into_alias().0;
+                    let cp: *const $container = ::std::mem::transmute(c);
+                    $nt(::std::mem::transmute(&((*cp).$field)))
+                }
             }
             #[inline]
-            unsafe fn into_container(self) -> Box<$container> {
+            fn into_container(self) -> $crate::OwnBox<$container> {
                 let fieldptr = self.0;
                 let containerptr = fieldptr - containerof_field_offset!($container:$field);
-                ::std::mem::transmute(containerptr)
+                unsafe { $crate::OwnBox::from_alias($crate::IntrusiveAlias(containerptr)) }
+            }
+            #[inline]
+            fn of_container<'a>(container: &'a $container) -> $crate::BorrowBox<'a, $nt> {
+                let addr = container as *const _ as usize;
+                let fieldptr = addr + containerof_field_offset!($container:$field);
+                unsafe { $crate::BorrowBox::new_from($crate::IntrusiveAlias(fieldptr), container) }
+            }
+            #[inline]
+            fn of_container_mut<'a>(container: &'a mut $container) -> $crate::BorrowBoxMut<'a, $nt> {
+                let addr = container as *mut _ as usize;
+                let fieldptr = addr + containerof_field_offset!($container:$field);
+                unsafe { $crate::BorrowBoxMut::new_from($crate::IntrusiveAlias(fieldptr), container) }
             }
             #[inline]
             fn as_container<'a>(&'a self) -> &'a $container {
@@ -80,12 +96,22 @@ macro_rules! containerof_intrusive {
             }
 
             #[inline]
-            unsafe fn from_field(c: Box<$fieldtype>) -> Self {
-                $nt(::std::mem::transmute(c))
+            unsafe fn from_field(c: $crate::OwnBox<$fieldtype>) -> Self {
+                let addr = c.get_address();
+                ::std::mem::forget(c);
+                $nt(addr)
             }
             #[inline]
-            unsafe fn into_field(self) -> Box<$fieldtype> {
-                ::std::mem::transmute(self.0)
+            unsafe fn into_field(self) -> $crate::OwnBox<$fieldtype> {
+                $crate::OwnBox::from_alias($crate::IntrusiveAlias(self.0))
+            }
+            #[inline]
+            unsafe fn of_field<'a>(field: &'a $fieldtype) -> $crate::BorrowBox<'a, $nt> {
+                unsafe { $crate::BorrowBox::new_from($crate::IntrusiveAlias(field as *const _ as usize), field) }
+            }
+            #[inline]
+            unsafe fn of_field_mut<'a>(field: &'a mut $fieldtype) -> $crate::BorrowBoxMut<'a, $nt> {
+                unsafe { $crate::BorrowBoxMut::new_from($crate::IntrusiveAlias(field as *mut _ as usize), field) }
             }
             #[inline]
             fn as_field<'a>(&'a self) -> &'a $fieldtype {
@@ -96,22 +122,22 @@ macro_rules! containerof_intrusive {
                 unsafe { ::std::mem::transmute(self.0) }
             }
 
-            unsafe fn from_alias(ia: ::containerof::IntrusiveAlias) -> Self {
+            unsafe fn from_alias(ia: $crate::IntrusiveAlias) -> Self {
                 ::std::mem::transmute(ia)
             }
-            unsafe fn into_alias(self) -> ::containerof::IntrusiveAlias {
+            unsafe fn into_alias(self) -> $crate::IntrusiveAlias {
                 ::std::mem::transmute(self)
             }
-            unsafe fn as_alias<'a>(&'a self) -> &'a ::containerof::IntrusiveAlias {
+            unsafe fn as_alias<'a>(&'a self) -> &'a $crate::IntrusiveAlias {
                 ::std::mem::transmute(self)
             }
-            unsafe fn as_alias_mut<'a>(&'a mut self) -> &'a mut ::containerof::IntrusiveAlias {
+            unsafe fn as_alias_mut<'a>(&'a mut self) -> &'a mut $crate::IntrusiveAlias {
                 ::std::mem::transmute(self)
             }
-            unsafe fn of_alias<'a>(ia: &'a ::containerof::IntrusiveAlias) -> &'a Self {
+            unsafe fn of_alias<'a>(ia: &'a $crate::IntrusiveAlias) -> &'a Self {
                 ::std::mem::transmute(ia)
             }
-            unsafe fn of_alias_mut<'a>(ia: &'a mut ::containerof::IntrusiveAlias) -> &'a mut Self {
+            unsafe fn of_alias_mut<'a>(ia: &'a mut $crate::IntrusiveAlias) -> &'a mut Self {
                 ::std::mem::transmute(ia)
             }
         }
@@ -124,9 +150,98 @@ macro_rules! containerof_intrusive {
 /// facility to use the single (but type-unsafe) IntrusiveAlias type,
 /// while allowing type-safe wrapper implementations to delegate their
 /// behavior to the implementation function.
-#[derive(PartialEq,Eq,Copy,Clone)]
+#[derive(PartialEq,Eq,Copy,Clone,Debug)]
 #[unstable = "Experimental API"]
 pub struct IntrusiveAlias(pub usize);
+
+// FIXME: this wants to be a linear type.
+#[unstable = "Experimental API"]
+pub struct OwnBox<T> {
+    pointer: IntrusiveAlias,
+    marker: marker::PhantomData<T>,
+}
+impl<T> OwnBox<T> {
+    pub fn get_address(&self) -> usize {
+        self.pointer.0
+    }
+    pub unsafe fn from_alias(pointer: IntrusiveAlias) -> OwnBox<T> {
+        OwnBox { pointer: pointer, marker: marker::PhantomData }
+    }
+    pub unsafe fn into_alias(self) -> IntrusiveAlias {
+        let rval = self.pointer;
+        mem::forget(self);
+        rval
+    }
+    pub fn as_alias<'a>(&'a self) -> &'a IntrusiveAlias {
+        &self.pointer
+    }
+    pub unsafe fn from_box(b: Box<T>) -> OwnBox<T> {
+        OwnBox { pointer: IntrusiveAlias(::std::mem::transmute(b)), marker: marker::PhantomData }
+    }
+    pub unsafe fn into_box(self) -> Box<T> {
+        ::std::mem::transmute(self.into_alias().0)
+    }
+}
+impl<T> ops::Deref for OwnBox<T> {
+    type Target = T;
+    fn deref<'a>(&'a self) -> &'a T {
+        unsafe { ::std::mem::transmute(self.pointer.0) }
+    }
+}
+impl<T> ops::DerefMut for OwnBox<T> {
+    fn deref_mut<'a>(&'a mut self) -> &'a mut T {
+        unsafe { ::std::mem::transmute(self.pointer.0) }
+    }
+}
+#[unsafe_destructor]
+impl<T> ops::Drop for OwnBox<T> {
+    fn drop(&mut self) {
+        // should have been consumed via "into_box" or "into_alias".
+        panic!("OwnBox should be treated as linear!");
+    }
+}
+
+#[derive(Debug)]
+pub struct BorrowBox<'a, T: 'a> {
+    pointer: IntrusiveAlias,
+    marker: marker::PhantomData<&'a T>,
+}
+impl<'a, T> BorrowBox<'a, T> where T: Intrusive {
+    pub fn new(source: &'a T) -> BorrowBox<'a, T> {
+        unsafe { BorrowBox::new_from(IntrusiveAlias(source as *const T as usize), source) }
+    }
+    pub unsafe fn new_from<U>(pointer: IntrusiveAlias, _lifetime: &'a U) -> BorrowBox<'a, T> {
+        BorrowBox {
+            pointer: pointer,
+            marker: marker::PhantomData,
+        }
+    }
+    pub fn as_target<'b>(&'b self) -> &'b T where 'b: 'a {
+        unsafe { Intrusive::of_alias(&self.pointer) }
+    }
+}
+#[derive(Debug)]
+pub struct BorrowBoxMut<'a, T: 'a> where T: Intrusive {
+    pointer: IntrusiveAlias,
+    marker: marker::PhantomData<&'a mut T>,
+}
+impl<'a, T> BorrowBoxMut<'a, T> where T: Intrusive {
+    pub fn new(source: &'a mut T) -> BorrowBoxMut<'a, T> {
+        unsafe { BorrowBoxMut::new_from(IntrusiveAlias(source as *mut T as usize), source) }
+    }
+    pub unsafe fn new_from<U>(pointer: IntrusiveAlias, _lifetime: &'a mut U) -> BorrowBoxMut<'a, T> {
+        BorrowBoxMut {
+            pointer: pointer,
+            marker: marker::PhantomData,
+        }
+    }
+    pub fn as_target<'b>(&'b self) -> &'b T where 'a: 'b {
+        unsafe { Intrusive::of_alias(&self.pointer) }
+    }
+    pub fn as_target_mut<'b>(&'b mut self) -> &'b mut T where 'a: 'b {
+        unsafe { Intrusive::of_alias_mut(&mut self.pointer) }
+    }
+}
 
 /// Trait defining routines for translation between containing
 /// structure and intrusive field. The only implementors of this type
@@ -141,27 +256,16 @@ pub trait Intrusive {
     // TODO: would also like to see an "offset" associated const, but
     // Rust doesn't seem to support these yet.
 
-    // FIXME: I'm not sure that "Box" is correct to use for these
-    // "from/into" APIs. Idea is to represent the ownership in a
-    // pointer, but does dropping a Box<> pointer generally cause a
-    // `free` operation? If so, using these APIs will cause the wrong
-    // thing to be done, if the box was not initially obtained via a
-    // `malloc`. What I'd really like is an additional LinearBox<> for
-    // the `into_field` operation.
-    //
-    // Since I'm not sure what the correct thing to do is, mark the
-    // `ownership` transferring functions as `unsafe`, so that users
-    // will know that places where these functions are called will
-    // need extra review to ensure correctness. If I get a better idea
-    // later, we may be able to make safe versions of these routines.
-
     /// Represent ownership of a container as ownership of an Intrusive
     /// pointer type. (Inverse of `into_container`.)
-    unsafe fn from_container(Box<Self::Container>) -> Self;
+    fn from_container(OwnBox<Self::Container>) -> Self;
 
     /// Represent ownership of an Intrusive pointer type as ownership of
     /// its container. (Inverse of `from_container`.)
-    unsafe fn into_container(self) -> Box<Self::Container>;
+    fn into_container(self) -> OwnBox<Self::Container>;
+
+    fn of_container<'a>(&'a Self::Container) -> BorrowBox<'a, Self>;
+    fn of_container_mut<'a>(&'a mut Self::Container) -> BorrowBoxMut<'a, Self>;
 
     /// Grant referential access to the container of this intrusive
     /// pointer type.
@@ -174,11 +278,14 @@ pub trait Intrusive {
     /// ownership of the field as an intrusive pointer, allowing
     /// eventual translation back to the container. (Inverse of
     /// `into_field`.)
-    unsafe fn from_field(Box<Self::Field>) -> Self;
+    unsafe fn from_field(OwnBox<Self::Field>) -> Self;
     
     /// Represent ownership of the container object as ownership of
     /// the intrusive field in the object. (Inverse of `from_field`.)
-    unsafe fn into_field(self) -> Box<Self::Field>;
+    unsafe fn into_field(self) -> OwnBox<Self::Field>;
+
+    unsafe fn of_field<'a>(&'a Self::Field) -> BorrowBox<'a, Self>;
+    unsafe fn of_field_mut<'a>(&'a mut Self::Field) -> BorrowBoxMut<'a, Self>;
 
     /// Grant referential access to the intrusive field represented by
     /// this intrusive pointer.

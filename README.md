@@ -52,14 +52,15 @@ struct Church {
 containerof_intrusive!(ChurchLink = Church:next::Option<ChurchLink>);
 
 impl Church {
-    fn new() -> Box<Church> {
-        Box::new(Church { next: None })
+    fn new() -> OwnBox<Church> {
+        unsafe { OwnBox::from_box(Box::new(Church { next: None })) }
     }
-    fn push(next: Box<Church>) -> Box<Church> {
-        Box::new(Church { next: Some(unsafe { Intrusive::from_container(next) }) })
+    fn push(next: OwnBox<Church>) -> OwnBox<Church> {
+        unsafe { OwnBox::from_box(Box::new(Church { next: Some(Intrusive::from_container(next)) })) }
     }
-    fn pop(self: Box<Church>) -> Option<Box<Church>> {
-        match self.next {
+    fn pop(me: OwnBox<Church>) -> Option<OwnBox<Church>> {
+        let me = unsafe { me.into_box() };
+        match me.next {
             None => None,
             Some(x) => Some(unsafe { x.into_container() }),
         }

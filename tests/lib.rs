@@ -18,9 +18,9 @@ impl Intrusive for MyStructField2_Meth1 {
 
     fn from_container(c: OwnBox<MyStruct>) -> Self {
         unsafe {
-            let c = c.into_alias().0;
-            let cp: *const MyStruct = ::std::mem::transmute(c);
-            MyStructField2_Meth1(::std::mem::transmute(&((*cp).field2)))
+            let addr = &c.field2 as *const _ as usize;
+            ::std::mem::forget(c);
+            MyStructField2_Meth1(addr)
         }
     }
     fn into_container(self) -> OwnBox<MyStruct> {
@@ -42,7 +42,7 @@ impl Intrusive for MyStructField2_Meth1 {
         unsafe {
             let fieldptr = self.0;
             let containerptr = fieldptr - containerof_field_offset!(MyStruct:field2);
-            ::std::mem::transmute(containerptr)
+            &*(containerptr as *const MyStruct)
         }
     }
     fn as_container_mut<'a>(&'a mut self) -> &'a mut MyStruct {
@@ -63,17 +63,17 @@ impl Intrusive for MyStructField2_Meth1 {
         unsafe { BorrowBoxMut::new_from(IntrusiveAlias(field as *mut _ as usize), field) }
     }
     fn as_field(&self) -> &i32 {
-        unsafe { ::std::mem::transmute(self.0) }
+        unsafe { &*(self.0 as *const i32) }
     }
     fn as_field_mut(&mut self) -> &mut i32 {
-        unsafe { ::std::mem::transmute(self.0) }
+        unsafe { ::std::mem::transmute(self.as_field()) }
     }
 
     unsafe fn from_alias(ia: IntrusiveAlias) -> Self {
-        ::std::mem::transmute(ia)
+        MyStructField2_Meth1(ia.0)
     }
     unsafe fn into_alias(self) -> IntrusiveAlias {
-        ::std::mem::transmute(self)
+        IntrusiveAlias(self.0)
     }
     unsafe fn as_alias<'a>(&'a self) -> &'a IntrusiveAlias {
         ::std::mem::transmute(self)
@@ -124,8 +124,9 @@ fn test_intrusive_container_roundtrip() {
 
 #[test]
 fn test_intrusive_field_roundtrip() {
-    let mc1 = Box::new(MyStruct { field1: 1, field2: 2, field3: 3 });
-    let mc1 = unsafe { OwnBox::from_box(mc1) };
+    let mc1 = unsafe {
+        OwnBox::from_box(Box::new(MyStruct { field1: 1, field2: 2, field3: 3 }))
+    };
     let mc1_addr = mc1.get_address();
     let mc1_field_addr: usize = unsafe { ::std::mem::transmute(&mc1.field2) };
 

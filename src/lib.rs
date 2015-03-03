@@ -59,9 +59,9 @@ macro_rules! containerof_intrusive {
             #[inline]
             fn from_container(c: $crate::OwnBox<$container>) -> Self {
                 unsafe {
-                    let c = c.into_alias().0;
-                    let cp: *const $container = ::std::mem::transmute(c);
-                    $nt(::std::mem::transmute(&((*cp).$field)))
+                    let addr = &c.$field as *const _ as usize;
+                    ::std::mem::forget(c);
+                    $nt(addr)
                 }
             }
             #[inline]
@@ -87,7 +87,7 @@ macro_rules! containerof_intrusive {
                 unsafe {
                     let fieldptr = self.0;
                     let containerptr = fieldptr - containerof_field_offset!($container:$field);
-                    ::std::mem::transmute(containerptr)
+                    &*(containerptr as *const $container)
                 }
             }
             #[inline]
@@ -115,28 +115,34 @@ macro_rules! containerof_intrusive {
             }
             #[inline]
             fn as_field<'a>(&'a self) -> &'a $fieldtype {
-                unsafe { ::std::mem::transmute(self.0) }
+                unsafe { &*(self.0 as *const _) }
             }
             #[inline]
             fn as_field_mut<'a>(&'a mut self) -> &'a mut $fieldtype {
                 unsafe { ::std::mem::transmute(self.0) }
             }
 
+            #[inline]
             unsafe fn from_alias(ia: $crate::IntrusiveAlias) -> Self {
-                ::std::mem::transmute(ia)
+                $nt(ia.0)
             }
+            #[inline]
             unsafe fn into_alias(self) -> $crate::IntrusiveAlias {
-                ::std::mem::transmute(self)
+                $crate::IntrusiveAlias(self.0)
             }
+            #[inline]
             unsafe fn as_alias<'a>(&'a self) -> &'a $crate::IntrusiveAlias {
                 ::std::mem::transmute(self)
             }
+            #[inline]
             unsafe fn as_alias_mut<'a>(&'a mut self) -> &'a mut $crate::IntrusiveAlias {
                 ::std::mem::transmute(self)
             }
+            #[inline]
             unsafe fn of_alias<'a>(ia: &'a $crate::IntrusiveAlias) -> &'a Self {
                 ::std::mem::transmute(ia)
             }
+            #[inline]
             unsafe fn of_alias_mut<'a>(ia: &'a mut $crate::IntrusiveAlias) -> &'a mut Self {
                 ::std::mem::transmute(ia)
             }
@@ -197,7 +203,7 @@ impl<T> ops::DerefMut for OwnBox<T> {
 impl<T> ops::Drop for OwnBox<T> {
     fn drop(&mut self) {
         // should have been consumed via "into_box" or "into_alias".
-        panic!("OwnBox should be treated as linear!");
+        panic!("containerof::OwnBox should be treated as linear!");
     }
 }
 
@@ -220,6 +226,7 @@ impl<'a, T> BorrowBox<'a, T> where T: Intrusive {
         unsafe { Intrusive::of_alias(&self.pointer) }
     }
 }
+
 #[derive(Debug)]
 pub struct BorrowBoxMut<'a, T: 'a> where T: Intrusive {
     pointer: IntrusiveAlias,

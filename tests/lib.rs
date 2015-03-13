@@ -12,80 +12,15 @@ struct MyStruct {
 
 #[derive(Debug)]
 struct MyStructField2_Meth1(usize);
-impl Intrusive for MyStructField2_Meth1 {
+impl IntrusiveBase for MyStructField2_Meth1 {
     type Container = MyStruct;
     type Field = i32;
 
-    fn from_container(c: OwnBox<MyStruct>) -> Self {
-        unsafe {
-            let addr = &c.field2 as *const _ as usize;
-            ::std::mem::forget(c);
-            MyStructField2_Meth1(addr)
-        }
+    fn offset() -> usize {
+        containerof_field_offset!(MyStruct:field2)
     }
-    fn into_container(self) -> OwnBox<MyStruct> {
-        let fieldptr = self.0;
-        let containerptr = fieldptr - containerof_field_offset!(MyStruct:field2);
-        unsafe { OwnBox::from_alias(IntrusiveAlias(containerptr)) }
-    }
-    fn of_container<'a>(container: &'a MyStruct) -> BorrowBox<'a, MyStructField2_Meth1> {
-        let addr = container as *const _ as usize;
-        let fieldptr = addr + containerof_field_offset!(MyStruct:field2);
-        unsafe { BorrowBox::new_from(IntrusiveAlias(fieldptr), container) }
-    }
-    fn of_container_mut<'a>(container: &'a mut MyStruct) -> BorrowBoxMut<'a, MyStructField2_Meth1> {
-        let addr = container as *mut _ as usize;
-        let fieldptr = addr + containerof_field_offset!(MyStruct:field2);
-        unsafe { BorrowBoxMut::new_from(IntrusiveAlias(fieldptr), container) }
-    }
-    fn as_container<'a>(&'a self) -> &'a MyStruct {
-        unsafe {
-            let fieldptr = self.0;
-            let containerptr = fieldptr - containerof_field_offset!(MyStruct:field2);
-            &*(containerptr as *const MyStruct)
-        }
-    }
-    fn as_container_mut<'a>(&'a mut self) -> &'a mut MyStruct {
-        unsafe { ::std::mem::transmute(self.as_container()) }
-    }
-    unsafe fn from_field(c: OwnBox<i32>) -> Self {
-        let addr = c.get_address();
-        std::mem::forget(c);
-        MyStructField2_Meth1(addr)
-    }
-    unsafe fn into_field(self) -> OwnBox<i32> {
-        OwnBox::from_alias(IntrusiveAlias(self.0))
-    }
-    unsafe fn of_field<'a>(field: &'a i32) -> BorrowBox<'a, MyStructField2_Meth1> {
-        unsafe { BorrowBox::new_from(IntrusiveAlias(field as *const _ as usize), field) }
-    }
-    unsafe fn of_field_mut<'a>(field: &'a mut i32) -> BorrowBoxMut<'a, MyStructField2_Meth1> {
-        unsafe { BorrowBoxMut::new_from(IntrusiveAlias(field as *mut _ as usize), field) }
-    }
-    fn as_field(&self) -> &i32 {
-        unsafe { &*(self.0 as *const i32) }
-    }
-    fn as_field_mut(&mut self) -> &mut i32 {
-        unsafe { ::std::mem::transmute(self.as_field()) }
-    }
-
-    unsafe fn from_alias(ia: IntrusiveAlias) -> Self {
-        MyStructField2_Meth1(ia.0)
-    }
-    unsafe fn into_alias(self) -> IntrusiveAlias {
-        IntrusiveAlias(self.0)
-    }
-    unsafe fn as_alias<'a>(&'a self) -> &'a IntrusiveAlias {
-        ::std::mem::transmute(self)
-    }
-    unsafe fn as_alias_mut<'a>(&'a mut self) -> &'a mut IntrusiveAlias {
-        ::std::mem::transmute(self)
-    }
-    unsafe fn of_alias<'a>(ia: &'a IntrusiveAlias) -> &'a Self {
-        ::std::mem::transmute(ia)
-    }
-    unsafe fn of_alias_mut<'a>(ia: &'a mut IntrusiveAlias) -> &'a mut Self {
-        ::std::mem::transmute(ia)
+    unsafe fn new(ia: IntrusiveAlias) -> Self {
+        MyStructField2_Meth1(ia.get_address())
     }
 }
 //containerof_intrusive!(MyStructField2_Meth2 = MyStruct:field2::i32);

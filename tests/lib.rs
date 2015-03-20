@@ -11,6 +11,7 @@ struct MyStruct {
 }
 
 #[derive(Debug)]
+#[allow(non_camel_case_types)]
 struct MyStructField2_Meth1(usize);
 impl IntrusiveBase for MyStructField2_Meth1 {
     type Container = MyStruct;

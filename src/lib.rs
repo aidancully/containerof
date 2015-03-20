@@ -27,7 +27,6 @@
 //! ```
 
 #![feature(unsafe_destructor)]
-#[crate_id = "containerof"]
 use std::ops;
 use std::mem;
 use std::marker;
@@ -55,7 +54,7 @@ macro_rules! containerof_intrusive {
                 containerof_field_offset!($container : $field)
             }
             #[inline]
-            fn new(ia: $crate::IntrusiveAlias) -> $nt {
+            unsafe fn new(ia: $crate::IntrusiveAlias) -> $nt {
                 $nt(ia)
             }
         }
@@ -263,28 +262,28 @@ pub trait Intrusive: IntrusiveBase {
 
 impl<T: IntrusiveBase> Intrusive for T {
     #[inline]
-    fn from_alias(ia: IntrusiveAlias) -> T {
-        unsafe { <T as IntrusiveBase>::new(ia) }
+    unsafe fn from_alias(ia: IntrusiveAlias) -> T {
+        <T as IntrusiveBase>::new(ia)
     }
     #[inline]
-    fn into_alias(self) -> IntrusiveAlias {
-        unsafe { *self.as_alias() }
+    unsafe fn into_alias(self) -> IntrusiveAlias {
+        *self.as_alias()
     }
     #[inline]
-    fn as_alias<'a>(&'a self) -> &'a IntrusiveAlias {
-        unsafe { mem::transmute(self as *const _) }
+    unsafe fn as_alias<'a>(&'a self) -> &'a IntrusiveAlias {
+        mem::transmute(self as *const _)
     }
     #[inline]
-    fn as_alias_mut<'a>(&'a mut self) -> &'a mut IntrusiveAlias {
-        unsafe { mem::transmute(self as *const _) }
+    unsafe fn as_alias_mut<'a>(&'a mut self) -> &'a mut IntrusiveAlias {
+        mem::transmute(self as *const _)
     }
     #[inline]
-    fn of_alias<'a>(ia: &'a IntrusiveAlias) -> &'a T {
-        unsafe { mem::transmute(ia as *const _) }
+    unsafe fn of_alias<'a>(ia: &'a IntrusiveAlias) -> &'a T {
+        mem::transmute(ia as *const _)
     }
     #[inline]
-    fn of_alias_mut<'a>(ia: &'a mut IntrusiveAlias) -> &'a mut T {
-        unsafe { mem::transmute(ia as *const _) }
+    unsafe fn of_alias_mut<'a>(ia: &'a mut IntrusiveAlias) -> &'a mut T {
+        mem::transmute(ia as *const _)
     }
     #[inline]
     fn from_container(c: OwnBox<T::Container>) -> Self {
@@ -336,11 +335,11 @@ impl<T: IntrusiveBase> Intrusive for T {
     }
     #[inline]
     unsafe fn of_field<'a>(field: &'a T::Field) -> BorrowBox<'a, T> {
-        unsafe { BorrowBox::new_from(IntrusiveAlias::new_of(field), field) }
+        BorrowBox::new_from(IntrusiveAlias::new_of(field), field)
     }
     #[inline]
     unsafe fn of_field_mut<'a>(field: &'a mut T::Field) -> BorrowBoxMut<'a, T> {
-        unsafe { BorrowBoxMut::new_from(IntrusiveAlias::new_of(field), field) }
+        BorrowBoxMut::new_from(IntrusiveAlias::new_of(field), field)
     }
     #[inline]
     fn as_field<'a>(&'a self) -> &'a T::Field {

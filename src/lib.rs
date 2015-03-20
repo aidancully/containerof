@@ -45,7 +45,20 @@ macro_rules! containerof_field_offset {
 #[unstable = "Experimental API."]
 macro_rules! containerof_intrusive {
     ($nt:ident = $container:ty : $field:ident :: $fieldtype:ty) => (
+        containerof_intrusive!(_decl $nt);
+        containerof_intrusive!(_impl $nt = $container : $field :: $fieldtype);
+        );
+    (pub $nt:ident = $container:ty : $field:ident :: $fieldtype:ty) => (
+        containerof_intrusive!(_decl pub $nt);
+        containerof_intrusive!(_impl $nt = $container : $field :: $fieldtype);
+        );
+    (_decl $nt:ident) => (
         struct $nt($crate::IntrusiveAlias);
+        );
+    (_decl pub $nt:ident) => (
+        pub struct $nt($crate::IntrusiveAlias);
+        );
+    (_impl $nt:ident = $container:ty : $field:ident :: $fieldtype:ty) => (
         impl $crate::IntrusiveBase for $nt {
             type Container = $container;
             type Field = $fieldtype;
@@ -58,7 +71,7 @@ macro_rules! containerof_intrusive {
                 $nt(ia)
             }
         }
-        )
+        );
 }
 
 /// Alias that has the same representation as an intrusive type. The

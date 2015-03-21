@@ -23,6 +23,9 @@ impl IntrusiveBase for MyStructField2_Meth1 {
     unsafe fn new(ia: IntrusiveAlias) -> Self {
         MyStructField2_Meth1(ia.get_address())
     }
+    unsafe fn as_alias<'a>(&'a self) -> &'a IntrusiveAlias {
+        ::std::mem::transmute(self as *const _)
+    }
 }
 //containerof_intrusive!(MyStructField2_Meth2 = MyStruct:field2::i32);
 

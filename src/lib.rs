@@ -25,6 +25,14 @@
 //! }
 //! containerof_intrusive!(ContainerLink = Container:link::Link);
 //! ```
+//!
+//! In this example, there are three types associated with the
+//! intrusive facility:
+//!
+//! * The intrusive structure itself (`Link`);
+//! * The container of the intrusive structure (`Container`);
+//! * The translation type, for moving between the container and the embedded
+//! intrusive field (`ContainerLink`).
 
 #![feature(unsafe_destructor)]
 use std::ops;
@@ -41,6 +49,8 @@ macro_rules! containerof_field_offset {
     })
 }
 
+/// Define a type representing an intrusive field within a containing
+/// structure.
 #[macro_export]
 #[unstable = "Experimental API."]
 macro_rules! containerof_intrusive {
@@ -52,6 +62,8 @@ macro_rules! containerof_intrusive {
         containerof_intrusive!(_decl pub $nt);
         containerof_intrusive!(_impl $nt = $container : $field :: $fieldtype);
         );
+    // below are implementation details. you should not invoke these
+    // macro variants directly.
     (_decl $nt:ident) => (
         struct $nt($crate::IntrusiveAlias);
         );
@@ -69,6 +81,10 @@ macro_rules! containerof_intrusive {
             #[inline]
             unsafe fn new(ia: $crate::IntrusiveAlias) -> $nt {
                 $nt(ia)
+            }
+            #[inline]
+            unsafe fn as_alias<'a>(&'a self) -> &'a IntrusiveAlias {
+                ::std::mem::transmute(self as *const _)
             }
         }
         );
@@ -212,6 +228,9 @@ pub trait IntrusiveBase {
     /// Ownership-moving translation from generic intrusive pointer
     /// alias to type-safe intrusive pointer.
     unsafe fn new(IntrusiveAlias) -> Self;
+
+    /// Allow using type-safe intrusive pointer as generic intrusive pointer.
+    unsafe fn as_alias<'a>(&'a self) -> &'a IntrusiveAlias;
 }
 
 /// Trait defining routines for translation between containing
@@ -227,9 +246,6 @@ pub trait Intrusive: IntrusiveBase {
     /// Ownership-moving translation from type-safe intrusive pointer
     /// to generic intrusive pointer.
     unsafe fn into_alias(self) -> IntrusiveAlias;
-
-    /// Allow using type-safe intrusive pointer as generic intrusive pointer.
-    unsafe fn as_alias<'a>(&'a self) -> &'a IntrusiveAlias;
 
     /// Allow using type-safe intrusive pointer as mutable generic
     /// intrusive pointer.
@@ -293,12 +309,8 @@ impl<T: IntrusiveBase> Intrusive for T {
         *self.as_alias()
     }
     #[inline]
-    unsafe fn as_alias<'a>(&'a self) -> &'a IntrusiveAlias {
-        mem::transmute(self as *const _)
-    }
-    #[inline]
     unsafe fn as_alias_mut<'a>(&'a mut self) -> &'a mut IntrusiveAlias {
-        mem::transmute(self as *const _)
+        mem::transmute(self.as_alias())
     }
     #[inline]
     unsafe fn of_alias<'a>(ia: &'a IntrusiveAlias) -> &'a T {

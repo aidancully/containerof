@@ -160,7 +160,11 @@ impl<'a, T> BorrowBox<'a, T> where T: Intrusive {
             marker: marker::PhantomData,
         }
     }
-    pub fn as_target<'b>(&'b self) -> &'b T where 'b: 'a {
+}
+impl<'a, T> ops::Deref for BorrowBox<'a, T> where T: Intrusive {
+    type Target = T;
+
+    fn deref<'b>(&'b self) -> &'b T {
         unsafe { Intrusive::of_alias(&self.pointer) }
     }
 }
@@ -180,10 +184,16 @@ impl<'a, T> BorrowBoxMut<'a, T> where T: Intrusive {
             marker: marker::PhantomData,
         }
     }
-    pub fn as_target<'b>(&'b self) -> &'b T where 'a: 'b {
+}
+impl<'a, T> ops::Deref for BorrowBoxMut<'a, T> where T: Intrusive {
+    type Target = T;
+
+    fn deref<'b>(&'b self) -> &'b T {
         unsafe { Intrusive::of_alias(&self.pointer) }
     }
-    pub fn as_target_mut<'b>(&'b mut self) -> &'b mut T where 'a: 'b {
+}
+impl<'a, T> ops::DerefMut for BorrowBoxMut<'a, T> where T: Intrusive {
+    fn deref_mut<'b>(&'b mut self) -> &'b mut T {
         unsafe { Intrusive::of_alias_mut(&mut self.pointer) }
     }
 }

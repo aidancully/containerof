@@ -92,13 +92,13 @@ fn test_borrow_box() {
     let mut mc = MyStruct { field1: 1, field2: 2, field3: 3 };
     {
         let mcfield = <MyStructField2_Meth1 as Intrusive>::of_container(&mc);
-        assert_eq!(2, *mcfield.as_target().as_field());
+        assert_eq!(2, *mcfield.as_field());
     }
     {
         let mut mcfield = <MyStructField2_Meth1 as Intrusive>::of_container_mut(&mut mc);
-        assert_eq!(2, *mcfield.as_target().as_field());
-        *mcfield.as_target_mut().as_field_mut() = 10;
-        assert_eq!(10, *mcfield.as_target().as_field());
+        assert_eq!(2, *mcfield.as_field());
+        *mcfield.as_field_mut() = 10;
+        assert_eq!(10, *mcfield.as_field());
     }
     assert_eq!(10, mc.field2);
 }

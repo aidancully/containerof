@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Intrusive` trait in crate `containerof`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Intrusive">
+
+    <title>containerof::Intrusive - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        <p class='location'><a href='index.html'>containerof</a></p><script>window.sidebarCurrent = {name: 'Intrusive', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content trait">
+<h1 class='fqn'><span class='in-band'>Trait <a href='index.html'>containerof</a>::<wbr><a class='trait' href=''>Intrusive</a><wbr></span><span class='out-of-band'><span id='render-detail'>
+            <a id="collapse-all" href="#">[-]</a>&nbsp;<a id="expand-all" href="#">[+]</a>
+        </span><a id='src-680' href='../src/containerof/lib.rs.html#234-293'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait Intrusive: <a class='trait' href='../containerof/trait.IntrusiveBase.html' title='containerof::IntrusiveBase'>IntrusiveBase</a> {
+    unsafe fn <a href='#tymethod.from_alias' class='fnname'>from_alias</a>(<a class='struct' href='../containerof/struct.IntrusiveAlias.html' title='containerof::IntrusiveAlias'>IntrusiveAlias</a>) -&gt; Self;
+    unsafe fn <a href='#tymethod.into_alias' class='fnname'>into_alias</a>(self) -&gt; <a class='struct' href='../containerof/struct.IntrusiveAlias.html' title='containerof::IntrusiveAlias'>IntrusiveAlias</a>;
+    unsafe fn <a href='#tymethod.as_alias_mut' class='fnname'>as_alias_mut</a>&lt;'a&gt;(&amp;'a mut self) -&gt; &amp;'a mut <a class='struct' href='../containerof/struct.IntrusiveAlias.html' title='containerof::IntrusiveAlias'>IntrusiveAlias</a>;
+    unsafe fn <a href='#tymethod.of_alias' class='fnname'>of_alias</a>&lt;'a&gt;(&amp;'a <a class='struct' href='../containerof/struct.IntrusiveAlias.html' title='containerof::IntrusiveAlias'>IntrusiveAlias</a>) -&gt; &amp;'a Self;
+    unsafe fn <a href='#tymethod.of_alias_mut' class='fnname'>of_alias_mut</a>&lt;'a&gt;(ia: &amp;'a mut <a class='struct' href='../containerof/struct.IntrusiveAlias.html' title='containerof::IntrusiveAlias'>IntrusiveAlias</a>) -&gt; &amp;'a mut Self;
+    fn <a href='#tymethod.from_container' class='fnname'>from_container</a>(<a class='struct' href='../containerof/struct.OwnBox.html' title='containerof::OwnBox'>OwnBox</a>&lt;Self::Container&gt;) -&gt; Self;
+    fn <a href='#tymethod.into_container' class='fnname'>into_container</a>(self) -&gt; <a class='struct' href='../containerof/struct.OwnBox.html' title='containerof::OwnBox'>OwnBox</a>&lt;Self::Container&gt;;
+    fn <a href='#tymethod.of_container' class='fnname'>of_container</a>&lt;'a&gt;(&amp;'a Self::Container) -&gt; <a class='struct' href='../containerof/struct.BorrowBox.html' title='containerof::BorrowBox'>BorrowBox</a>&lt;'a, Self&gt;;
+    fn <a href='#tymethod.of_container_mut' class='fnname'>of_container_mut</a>&lt;'a&gt;(&amp;'a mut Self::Container) -&gt; <a class='struct' href='../containerof/struct.BorrowBoxMut.html' title='containerof::BorrowBoxMut'>BorrowBoxMut</a>&lt;'a, Self&gt;;
+    fn <a href='#tymethod.as_container' class='fnname'>as_container</a>&lt;'a&gt;(&amp;'a self) -&gt; &amp;'a Self::Container;
+    fn <a href='#tymethod.as_container_mut' class='fnname'>as_container_mut</a>&lt;'a&gt;(&amp;'a mut self) -&gt; &amp;'a mut Self::Container;
+    unsafe fn <a href='#tymethod.from_field' class='fnname'>from_field</a>(<a class='struct' href='../containerof/struct.OwnBox.html' title='containerof::OwnBox'>OwnBox</a>&lt;Self::Field&gt;) -&gt; Self;
+    unsafe fn <a href='#tymethod.into_field' class='fnname'>into_field</a>(self) -&gt; <a class='struct' href='../containerof/struct.OwnBox.html' title='containerof::OwnBox'>OwnBox</a>&lt;Self::Field&gt;;
+    unsafe fn <a href='#tymethod.of_field' class='fnname'>of_field</a>&lt;'a&gt;(&amp;'a Self::Field) -&gt; <a class='struct' href='../containerof/struct.BorrowBox.html' title='containerof::BorrowBox'>BorrowBox</a>&lt;'a, Self&gt;;
+    unsafe fn <a href='#tymethod.of_field_mut' class='fnname'>of_field_mut</a>&lt;'a&gt;(&amp;'a mut Self::Field) -&gt; <a class='struct' href='../containerof/struct.BorrowBoxMut.html' title='containerof::BorrowBoxMut'>BorrowBoxMut</a>&lt;'a, Self&gt;;
+    fn <a href='#tymethod.as_field' class='fnname'>as_field</a>&lt;'a&gt;(&amp;'a self) -&gt; &amp;'a Self::Field;
+    fn <a href='#tymethod.as_field_mut' class='fnname'>as_field_mut</a>&lt;'a&gt;(&amp;'a mut self) -&gt; &amp;'a mut Self::Field;
+}</pre><div class='docblock'><p>Trait defining routines for translation between containing
+structure and intrusive field. The only implementors of this type
+should be the pointer-types defined by the <code>containerof_intrusive</code>
+macro.</p>
+</div>
+            <h2 id='required-methods'>Required Methods</h2>
+            <div class='methods'>
+        <h3 id='tymethod.from_alias' class='method'><a class='stability Unmarked' title='No stability level'></a><code>unsafe fn <a href='#tymethod.from_alias' class='fnname'>from_alias</a>(<a class='struct' href='../containerof/struct.IntrusiveAlias.html' title='containerof::IntrusiveAlias'>IntrusiveAlias</a>) -&gt; Self</code></h3><div class='docblock'><p>Ownership-moving translation from generic intrusive pointer
+alias to type-safe intrusive pointer.</p>
+</div><h3 id='tymethod.into_alias' class='method'><a class='stability Unmarked' title='No stability level'></a><code>unsafe fn <a href='#tymethod.into_alias' class='fnname'>into_alias</a>(self) -&gt; <a class='struct' href='../containerof/struct.IntrusiveAlias.html' title='containerof::IntrusiveAlias'>IntrusiveAlias</a></code></h3><div class='docblock'><p>Ownership-moving translation from type-safe intrusive pointer
+to generic intrusive pointer.</p>
+</div><h3 id='tymethod.as_alias_mut' class='method'><a class='stability Unmarked' title='No stability level'></a><code>unsafe fn <a href='#tymethod.as_alias_mut' class='fnname'>as_alias_mut</a>&lt;'a&gt;(&amp;'a mut self) -&gt; &amp;'a mut <a class='struct' href='../containerof/struct.IntrusiveAlias.html' title='containerof::IntrusiveAlias'>IntrusiveAlias</a></code></h3><div class='docblock'><p>Allow using type-safe intrusive pointer as mutable generic
+intrusive pointer.</p>
+</div><h3 id='tymethod.of_alias' class='method'><a class='stability Unmarked' title='No stability level'></a><code>unsafe fn <a href='#tymethod.of_alias' class='fnname'>of_alias</a>&lt;'a&gt;(&amp;'a <a class='struct' href='../containerof/struct.IntrusiveAlias.html' title='containerof::IntrusiveAlias'>IntrusiveAlias</a>) -&gt; &amp;'a Self</code></h3><div class='docblock'><p>Allow using generic intrusive pointer as type-safe intrusive
+pointer.</p>
+</div><h3 id='tymethod.of_alias_mut' class='method'><a class='stability Unmarked' title='No stability level'></a><code>unsafe fn <a href='#tymethod.of_alias_mut' class='fnname'>of_alias_mut</a>&lt;'a&gt;(ia: &amp;'a mut <a class='struct' href='../containerof/struct.IntrusiveAlias.html' title='containerof::IntrusiveAlias'>IntrusiveAlias</a>) -&gt; &amp;'a mut Self</code></h3><div class='docblock'><p>Allow using generic intrusive pointer as mutable type-safe
+intrusive pointer.</p>
+</div><h3 id='tymethod.from_container' class='method'><a class='stability Unmarked' title='No stability level'></a><code>fn <a href='#tymethod.from_container' class='fnname'>from_container</a>(<a class='struct' href='../containerof/struct.OwnBox.html' title='containerof::OwnBox'>OwnBox</a>&lt;Self::Container&gt;) -&gt; Self</code></h3><div class='docblock'><p>Represent ownership of a container as ownership of an Intrusive
+pointer type. (Inverse of <code>into_container</code>.)</p>
+</div><h3 id='tymethod.into_container' class='method'><a class='stability Unmarked' title='No stability level'></a><code>fn <a href='#tymethod.into_container' class='fnname'>into_container</a>(self) -&gt; <a class='struct' href='../containerof/struct.OwnBox.html' title='containerof::OwnBox'>OwnBox</a>&lt;Self::Container&gt;</code></h3><div class='docblock'><p>Represent ownership of an Intrusive pointer type as ownership of
+its container. (Inverse of <code>from_container</code>.)</p>
+</div><h3 id='tymethod.of_container' class='method'><a class='stability Unmarked' title='No stability level'></a><code>fn <a href='#tymethod.of_container' class='fnname'>of_container</a>&lt;'a&gt;(&amp;'a Self::Container) -&gt; <a class='struct' href='../containerof/struct.BorrowBox.html' title='containerof::BorrowBox'>BorrowBox</a>&lt;'a, Self&gt;</code></h3><h3 id='tymethod.of_container_mut' class='method'><a class='stability Unmarked' title='No stability level'></a><code>fn <a href='#tymethod.of_container_mut' class='fnname'>of_container_mut</a>&lt;'a&gt;(&amp;'a mut Self::Container) -&gt; <a class='struct' href='../containerof/struct.BorrowBoxMut.html' title='containerof::BorrowBoxMut'>BorrowBoxMut</a>&lt;'a, Self&gt;</code></h3><h3 id='tymethod.as_container' class='method'><a class='stability Unmarked' title='No stability level'></a><code>fn <a href='#tymethod.as_container' class='fnname'>as_container</a>&lt;'a&gt;(&amp;'a self) -&gt; &amp;'a Self::Container</code></h3><div class='docblock'><p>Grant referential access to the container of this intrusive
+pointer type.</p>
+</div><h3 id='tymethod.as_container_mut' class='method'><a class='stability Unmarked' title='No stability level'></a><code>fn <a href='#tymethod.as_container_mut' class='fnname'>as_container_mut</a>&lt;'a&gt;(&amp;'a mut self) -&gt; &amp;'a mut Self::Container</code></h3><div class='docblock'><p>Grant mutable referential access to the container of this
+intrusive pointer type.</p>
+</div><h3 id='tymethod.from_field' class='method'><a class='stability Unmarked' title='No stability level'></a><code>unsafe fn <a href='#tymethod.from_field' class='fnname'>from_field</a>(<a class='struct' href='../containerof/struct.OwnBox.html' title='containerof::OwnBox'>OwnBox</a>&lt;Self::Field&gt;) -&gt; Self</code></h3><div class='docblock'><p>Assuming the &quot;field&quot; is a field in the container object, take
+ownership of the field as an intrusive pointer, allowing
+eventual translation back to the container. (Inverse of
+<code>into_field</code>.)</p>
+</div><h3 id='tymethod.into_field' class='method'><a class='stability Unmarked' title='No stability level'></a><code>unsafe fn <a href='#tymethod.into_field' class='fnname'>into_field</a>(self) -&gt; <a class='struct' href='../containerof/struct.OwnBox.html' title='containerof::OwnBox'>OwnBox</a>&lt;Self::Field&gt;</code></h3><div class='docblock'><p>Represent ownership of the container object as ownership of
+the intrusive field in the object. (Inverse of <code>from_field</code>.)</p>
+</div><h3 id='tymethod.of_field' class='method'><a class='stability Unmarked' title='No stability level'></a><code>unsafe fn <a href='#tymethod.of_field' class='fnname'>of_field</a>&lt;'a&gt;(&amp;'a Self::Field) -&gt; <a class='struct' href='../containerof/struct.BorrowBox.html' title='containerof::BorrowBox'>BorrowBox</a>&lt;'a, Self&gt;</code></h3><h3 id='tymethod.of_field_mut' class='method'><a class='stability Unmarked' title='No stability level'></a><code>unsafe fn <a href='#tymethod.of_field_mut' class='fnname'>of_field_mut</a>&lt;'a&gt;(&amp;'a mut Self::Field) -&gt; <a class='struct' href='../containerof/struct.BorrowBoxMut.html' title='containerof::BorrowBoxMut'>BorrowBoxMut</a>&lt;'a, Self&gt;</code></h3><h3 id='tymethod.as_field' class='method'><a class='stability Unmarked' title='No stability level'></a><code>fn <a href='#tymethod.as_field' class='fnname'>as_field</a>&lt;'a&gt;(&amp;'a self) -&gt; &amp;'a Self::Field</code></h3><div class='docblock'><p>Grant referential access to the intrusive field represented by
+this intrusive pointer.</p>
+</div><h3 id='tymethod.as_field_mut' class='method'><a class='stability Unmarked' title='No stability level'></a><code>fn <a href='#tymethod.as_field_mut' class='fnname'>as_field_mut</a>&lt;'a&gt;(&amp;'a mut self) -&gt; &amp;'a mut Self::Field</code></h3><div class='docblock'><p>Grant mutable referential access to the intrusive field represented by
+this intrusive pointer.</p>
+</div></div>
+        <h2 id='implementors'>Implementors</h2>
+        <ul class='item-list' id='implementors-list'>
+    <li><a class='stability Unmarked' title='No stability level'></a><code>impl&lt;T: <a class='trait' href='../containerof/trait.IntrusiveBase.html' title='containerof::IntrusiveBase'>IntrusiveBase</a>&gt; <a class='trait' href='../containerof/trait.Intrusive.html' title='containerof::Intrusive'>Intrusive</a> for T</code></li>
+</ul><script type="text/javascript" async
+                              src="../implementors/containerof/trait.Intrusive.js">
+                      </script></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div class="shortcuts">
+            <h1>Keyboard shortcuts</h1>
+            <dl>
+                <dt>?</dt>
+                <dd>Show this help dialog</dd>
+                <dt>S</dt>
+                <dd>Focus the search field</dd>
+                <dt>&larrb;</dt>
+                <dd>Move up in search results</dd>
+                <dt>&rarrb;</dt>
+                <dd>Move down in search results</dd>
+                <dt>&#9166;</dt>
+                <dd>Go to active search result</dd>
+            </dl>
+        </div>
+        <div class="infos">
+            <h1>Search tricks</h1>
+            <p>
+                Prefix searches with a type followed by a colon (e.g.
+                <code>fn:</code>) to restrict the search to a given type.
+            </p>
+            <p>
+                Accepted types are: <code>fn</code>, <code>mod</code>,
+                <code>struct</code>, <code>enum</code>,
+                <code>trait</code>, <code>typedef</code> (or
+                <code>tdef</code>).
+            </p>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "containerof";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script async src="../search-index.js"></script>
+</body>
+</html>

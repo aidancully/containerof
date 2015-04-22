@@ -32,8 +32,9 @@ abstractions for using intrusive structures:
 * The `containerof_field_offset!` macro, which identifies the location
 of a field in a containing structure. This isn't too useful in
 itself, but is necessary to support:
-* The `containerof_intrusive!` macro, which provides a newtype for
-using "intrusive" fields to work with the container object.
+* The `containerof_intrusive!` macro, which provides a newtype that
+describes the translation between the "intrusive" field and the
+"container" structure.
 
 # Usage
 
@@ -68,6 +69,26 @@ impl Church {
 }
 # fn main() {}
 ```
+
+# Concepts
+
+`containerof` uses three main concepts for working with intrusive
+structures:
+
+1. The intrusive structure itself (`Church.next` in the above example);
+2. The containing structure (`Church`);
+3. The translation type, for getting a container from a field,
+or vice-versa (`ChurchLink`).
+
+In addition, there are three auxiliary structures for managing
+ownership and borrowing of intrusive structures:
+
+1. `OwnBox`, which is a pointer type representing ownership of the
+container (even if all you have is a field reference).
+2. `BorrowBox`, which is a pointer type representing a borrow of the
+container.
+3. `BorrowBoxMut`, which is a pointer type representing a mutable
+borrow of the container.
 
 # Contributing
 

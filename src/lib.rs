@@ -25,14 +25,6 @@
 //! }
 //! containerof_intrusive!(ContainerLink = Container:link::Link);
 //! ```
-//!
-//! In this example, there are three types associated with the
-//! intrusive facility:
-//!
-//! * The intrusive structure itself (`Link`);
-//! * The container of the intrusive structure (`Container`);
-//! * The translation type, for moving between the container and the embedded
-//! intrusive field (`ContainerLink`).
 
 #![feature(unsafe_destructor)]
 use std::ops;
@@ -49,8 +41,8 @@ macro_rules! containerof_field_offset {
     })
 }
 
-/// Define a type representing an intrusive field within a containing
-/// structure.
+/// Define a type representing the translation between an intrusive
+/// field and its containing structure.
 #[macro_export]
 #[unstable = "Experimental API."]
 macro_rules! containerof_intrusive {
@@ -157,6 +149,7 @@ impl<T> ops::DerefMut for OwnBox<T> {
 impl<T> ops::Drop for OwnBox<T> {
     fn drop(&mut self) {
         // should have been consumed via "into_box" or "into_alias".
+        // TODO: want a better way to encourage linearity on this type.
         //panic!("containerof::OwnBox should be treated as linear!");
     }
 }

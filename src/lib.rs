@@ -26,7 +26,6 @@
 //! containerof_intrusive!(ContainerLink = Container:link::Link);
 //! ```
 
-#![feature(unsafe_destructor)]
 use std::ops;
 use std::mem;
 use std::marker;
@@ -34,7 +33,6 @@ use std::marker;
 /// Implement C-like `offsetof` macro in Rust. Will become obsolete
 /// when-and-if offsetof() is implemented in the core language.
 #[macro_export]
-#[unstable = "Will go away if-and-when Rust implements this function directly."]
 macro_rules! containerof_field_offset {
     ($container:ty : $field:ident) => (unsafe {
         &(*(0usize as *const $container)).$field as *const _ as usize
@@ -44,7 +42,6 @@ macro_rules! containerof_field_offset {
 /// Define a type representing the translation between an intrusive
 /// field and its containing structure.
 #[macro_export]
-#[unstable = "Experimental API."]
 macro_rules! containerof_intrusive {
     ($nt:ident = $container:ty : $field:ident :: $fieldtype:ty) => (
         containerof_intrusive!(_decl $nt);
@@ -89,7 +86,6 @@ macro_rules! containerof_intrusive {
 /// while allowing type-safe wrapper implementations to delegate their
 /// behavior to the implementation function.
 #[derive(PartialEq,Eq,Copy,Clone,Debug)]
-#[unstable = "Experimental API"]
 pub struct IntrusiveAlias(pub usize);
 impl IntrusiveAlias {
     pub fn new(addr: usize) -> IntrusiveAlias {
@@ -103,8 +99,8 @@ impl IntrusiveAlias {
     }
 }
 
-// FIXME: this wants to be a linear type.
-#[unstable = "Experimental API"]
+// FIXME: this wants to be a linear type, but that requires linear-type
+// support in the language.
 pub struct OwnBox<T> {
     pointer: IntrusiveAlias,
     marker: marker::PhantomData<T>,
@@ -145,7 +141,6 @@ impl<T> ops::DerefMut for OwnBox<T> {
         unsafe { mem::transmute(self.get_address()) }
     }
 }
-#[unsafe_destructor]
 impl<T> ops::Drop for OwnBox<T> {
     fn drop(&mut self) {
         // should have been consumed via "into_box" or "into_alias".
@@ -207,7 +202,6 @@ impl<'a, T> ops::DerefMut for BorrowBoxMut<'a, T> where T: Intrusive {
     }
 }
 
-#[unstable = "Experimental API"]
 pub trait IntrusiveBase {
     /// Type of containing structure.
     type Container;
@@ -230,7 +224,6 @@ pub trait IntrusiveBase {
 /// structure and intrusive field. The only implementors of this type
 /// should be the pointer-types defined by the `containerof_intrusive`
 /// macro.
-#[unstable = "Experimental API"]
 pub trait Intrusive: IntrusiveBase {
     /// Ownership-moving translation from generic intrusive pointer
     /// alias to type-safe intrusive pointer.
@@ -301,6 +294,7 @@ impl<T: IntrusiveBase> Intrusive for T {
     unsafe fn into_alias(self) -> IntrusiveAlias {
         *self.as_alias()
     }
+    #[allow(mutable_transmutes)]
     #[inline]
     unsafe fn as_alias_mut<'a>(&'a mut self) -> &'a mut IntrusiveAlias {
         mem::transmute(self.as_alias())
@@ -347,6 +341,7 @@ impl<T: IntrusiveBase> Intrusive for T {
             &*(containerptr as *const T::Container)
         }
     }
+    #[allow(mutable_transmutes)]
     #[inline]
     fn as_container_mut<'a>(&'a mut self) -> &'a mut T::Container {
         unsafe { mem::transmute(self.as_container()) }

@@ -2,6 +2,7 @@
 #[macro_use]
 extern crate containerof;
 use containerof::*;
+use std::convert;
 
 #[derive(Clone)]
 struct MyStruct {
@@ -43,7 +44,7 @@ fn test_field_offset() {
 #[test]
 fn test_intrusive_container_roundtrip() {
     let mc1 = Box::new(MyStruct { field1: 1, field2: 2, field3: 3 });
-    let mc1 = unsafe { OwnBox::from_box(mc1) };
+    let mc1: OwnBox<_> = convert::From::from(mc1);
     let mc1_addr = mc1.get_address();
 
     let mcfield: MyStructField2_Meth1 = Intrusive::from_container(mc1);
@@ -63,9 +64,8 @@ fn test_intrusive_container_roundtrip() {
 
 #[test]
 fn test_intrusive_field_roundtrip() {
-    let mc1 = unsafe {
-        OwnBox::from_box(Box::new(MyStruct { field1: 1, field2: 2, field3: 3 }))
-    };
+    let mc1: OwnBox<_> =
+        convert::From::from(Box::new(MyStruct { field1: 1, field2: 2, field3: 3 }));
     let mc1_addr = mc1.get_address();
     let mc1_field_addr: usize = unsafe { ::std::mem::transmute(&mc1.field2) };
 

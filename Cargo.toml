@@ -8,6 +8,5 @@ repository = "https://github.com/aidancully/containerof"
 documentation = "https://aidancully.github.io/src/containerof/containerof/"
 readme = "README.md"
 description = """
-Provides Rust implementations of the C-language offsetof() and containerof()
-macros.
+Macros and traits facilitating the use of intrusive structures in Rust.
 """

@@ -250,7 +250,7 @@ impl<'a, T> ops::DerefMut for BorrowBoxMut<'a, T> where T: Intrusive {
 /// is the trait implemented by the `containerof_intrusive!` macro,
 /// and the only implementors of this trait should be the
 /// translation-types defined by the `containerof_intrusive!` macro.
-pub trait IntrusiveBase {
+pub trait IntrusiveBase: Sized {
     /// Type of containing structure.
     type Container;
     /// Type of intrusive field within containing structure.

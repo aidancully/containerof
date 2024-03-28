@@ -10,3 +10,6 @@ readme = "README.md"
 description = """
 Macros and traits facilitating the use of intrusive structures in Rust.
 """
+
+[build-dependencies]
+rustc_version = "0.3"

@@ -31,6 +31,17 @@ use std::marker;
 use std::mem;
 use std::ops;
 
+#[cfg(has_offset_of)]
+/// Implement C-like `offsetof` macro in Rust. Rust has stabilized
+/// ::std::mem::offset_of! since 1.77.0, you should use that, instead.
+#[macro_export]
+macro_rules! containerof_field_offset {
+    ($container:ty : $field:ident) => {
+        ::std::mem::offset_of!($container, $field)
+    };
+}
+
+#[cfg(not(has_offset_of))]
 /// Implement C-like `offsetof` macro in Rust. Rust has stabilized
 /// ::std::mem::offset_of! since 1.77.0, you should use that, instead.
 #[macro_export]

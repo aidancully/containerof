@@ -1,5 +1,4 @@
 #![cfg(test)]
-#[macro_use]
 extern crate containerof;
 use containerof::*;
 use std::convert;
@@ -13,7 +12,7 @@ struct MyStruct {
 
 #[derive(Debug)]
 #[allow(non_camel_case_types)]
-struct MyStructField2_Meth1(usize);
+struct MyStructField2_Meth1(*const ());
 impl IntrusiveBase for MyStructField2_Meth1 {
     type Container = MyStruct;
     type Field = i32;
@@ -24,36 +23,50 @@ impl IntrusiveBase for MyStructField2_Meth1 {
     unsafe fn new(ia: IntrusiveAlias) -> Self {
         MyStructField2_Meth1(ia.get_address())
     }
-    unsafe fn as_alias<'a>(&'a self) -> &'a IntrusiveAlias {
-        ::std::mem::transmute(self as *const _)
+    fn as_alias<'a>(&'a self) -> &'a IntrusiveAlias {
+        unsafe { ::std::mem::transmute(self as *const _) }
     }
 }
 //containerof_intrusive!(MyStructField2_Meth2 = MyStruct:field2::i32);
 
 #[test]
 fn test_field_offset() {
-    let ms = MyStruct { field1: 1, field2: 2, field3: 3 };
-    let ms_addr:usize = unsafe { ::std::mem::transmute(&ms) };
-    let ms_field1_addr:usize = unsafe { ::std::mem::transmute(&ms.field1) };
-    let ms_field2_addr:usize = unsafe { ::std::mem::transmute(&ms.field2) };
-    let ms_field3_addr:usize = unsafe { ::std::mem::transmute(&ms.field3) };
-    assert_eq!(ms_field1_addr - ms_addr, containerof_field_offset!(MyStruct:field1));
-    assert_eq!(ms_field2_addr - ms_addr, containerof_field_offset!(MyStruct:field2));
-    assert_eq!(ms_field3_addr - ms_addr, containerof_field_offset!(MyStruct:field3));
+    let ms = MyStruct {
+        field1: 1,
+        field2: 2,
+        field3: 3,
+    };
+    let ms_addr: usize = unsafe { ::std::mem::transmute(&ms) };
+    let ms_field1_addr: usize = unsafe { ::std::mem::transmute(&ms.field1) };
+    let ms_field2_addr: usize = unsafe { ::std::mem::transmute(&ms.field2) };
+    let ms_field3_addr: usize = unsafe { ::std::mem::transmute(&ms.field3) };
+    assert_eq!(
+        ms_field1_addr - ms_addr,
+        containerof_field_offset!(MyStruct:field1)
+    );
+    assert_eq!(
+        ms_field2_addr - ms_addr,
+        containerof_field_offset!(MyStruct:field2)
+    );
+    assert_eq!(
+        ms_field3_addr - ms_addr,
+        containerof_field_offset!(MyStruct:field3)
+    );
 }
 #[test]
 fn test_intrusive_container_roundtrip() {
-    let mc1 = Box::new(MyStruct { field1: 1, field2: 2, field3: 3 });
+    let mc1 = Box::new(MyStruct {
+        field1: 1,
+        field2: 2,
+        field3: 3,
+    });
     let mc1: OwnBox<_> = convert::From::from(mc1);
     let mc1_addr = mc1.get_address();
 
     let mcfield: MyStructField2_Meth1 = Intrusive::from_container(mc1);
-    let mcfieldcontainer: usize = unsafe {
-        ::std::mem::transmute(mcfield.as_container())
-    };
+    let mcfieldcontainer: *const () = unsafe { ::std::mem::transmute(mcfield.as_container()) };
 
     assert_eq!(mc1_addr, mcfieldcontainer);
-    ::std::mem::drop(mcfieldcontainer);
 
     let mc2 = mcfield.into_container();
     let mc2_addr = mc2.get_address();
@@ -64,8 +77,11 @@ fn test_intrusive_container_roundtrip() {
 
 #[test]
 fn test_intrusive_field_roundtrip() {
-    let mc1: OwnBox<_> =
-        convert::From::from(Box::new(MyStruct { field1: 1, field2: 2, field3: 3 }));
+    let mc1: OwnBox<_> = convert::From::from(Box::new(MyStruct {
+        field1: 1,
+        field2: 2,
+        field3: 3,
+    }));
     let mc1_addr = mc1.get_address();
     let mc1_field_addr: usize = unsafe { ::std::mem::transmute(&mc1.field2) };
 
@@ -73,7 +89,7 @@ fn test_intrusive_field_roundtrip() {
     let mcfield_as_addr = mcfield.as_field() as *const _ as usize;
     assert_eq!(mc1_field_addr, mcfield_as_addr);
 
-    let mcfield = unsafe { mcfield.into_field() };
+    let mcfield = mcfield.into_field();
     let mcfield_addr = unsafe { ::std::mem::transmute(&*mcfield) };
     assert_eq!(mc1_field_addr, mcfield_addr);
 
@@ -92,7 +108,11 @@ fn test_intrusive_field_roundtrip() {
 // fails under those circumstances.
 #[test]
 fn test_borrow_box() {
-    let mut mc = MyStruct { field1: 1, field2: 2, field3: 3 };
+    let mut mc = MyStruct {
+        field1: 1,
+        field2: 2,
+        field3: 3,
+    };
     {
         let mcfield = <MyStructField2_Meth1 as Intrusive>::of_container(&mc);
         assert_eq!(2, *mcfield.as_field());
